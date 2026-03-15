@@ -137,7 +137,8 @@ app.delete('/api/tasks/:id', (req, res) => {
 // POST /api/login — verify dashboard password
 app.post('/api/login', (req, res) => {
     const { password } = req.body;
-    if (password === process.env.DASHBOARD_PASSWORD) {
+    const expected = (process.env.DASHBOARD_PASSWORD || '').trim();
+    if ((password || '').trim() === expected) {
         res.json({ ok: true });
     } else {
         res.json({ ok: false });
