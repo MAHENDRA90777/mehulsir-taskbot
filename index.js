@@ -1,12 +1,11 @@
 require('dotenv').config();
 const cron = require('node-cron');
-const axios = require('axios');
 const fs = require('fs');
 const path = require('path');
 const express = require('express');
+const twilio = require('twilio');
 
-const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const CHAT_ID = process.env.SIR_CHAT_ID;
+const twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const TASKS_FILE = path.join(__dirname, 'tasks.json');
 
@@ -50,30 +49,28 @@ function getTasksDueNow() {
 }
 
 function buildMessage(tasks) {
-    const now = getNow();
-    const greet = now.hours < 12 ? 'Good morning' : now.hours < 17 ? 'Good afternoon' : 'Good evening';
-
-    const lines = tasks.map(t => {
-        const icon = t.type === 'monthly' ? '💳' : t.type === 'weekly' ? '📅' : '📌';
-        const tag = t.type !== 'daily' ? ` [${t.type}]` : '';
-        const note = t.note ? `\n    ${t.note}` : '';
-        return `${icon} ${t.name}${tag}${note}`;
-    });
-
-    return `🔔 Reminder\n${greet} Sir!\n\n${lines.join('\n\n')}\n\nTap done once completed.`;
+  const now = getNow();
+  const greet = now.hours < 12 ? 'Good morning' : now.hours < 17 ? 'Good afternoon' : 'Good evening';
+  const lines = tasks.map(t => {
+    const icon = t.type === 'monthly' ? '💳' : t.type === 'weekly' ? '📅' : '📌';
+    const tag = t.type !== 'daily' ? ' [' + t.type + ']' : '';
+    const note = t.note ? '\n    ' + t.note : '';
+    return icon + ' ' + t.name + tag + note;
+  });
+  return '🔔 Reminder\n' + greet + ' Sir!\n\n' + lines.join('\n\n') + '\n\nTap done once completed.';
 }
 
-async function sendTelegram(message) {
-    try {
-        await axios.post(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
-            chat_id: CHAT_ID,
-            text: message,
-            parse_mode: 'HTML'
-        });
-        console.log(`✅ Sent at ${new Date().toISOString()}`);
-    } catch (err) {
-        console.error('❌ Failed:', err.response?.data || err.message);
-    }
+async function sendWhatsApp(message) {
+  try {
+    const msg = await twilioClient.messages.create({
+      from: process.env.TWILIO_WHATSAPP_FROM,
+      to: process.env.SIR_WHATSAPP,
+      body: message
+    });
+    console.log('✅ WhatsApp sent! SID:', msg.sid);
+  } catch (err) {
+    console.error('❌ Failed:', err.message);
+  }
 }
 
 // ── CRON JOB ─────────────────────────────────────────────────────────────────
@@ -83,7 +80,7 @@ cron.schedule('* * * * *', async () => {
     const due = getTasksDueNow();
     if (due.length === 0) return;
     console.log(`⏰ ${due.length} task(s) due:`, due.map(t => t.name));
-    await sendTelegram(buildMessage(due));
+    await sendWhatsApp(buildMessage(due));
 });
 
 // ── EXPRESS WEB SERVER ───────────────────────────────────────────────────────
@@ -147,10 +144,10 @@ app.post('/api/login', (req, res) => {
     }
 });
 
-// POST /api/test — send a test Telegram message
+// POST /api/test — send a test WhatsApp message
 app.post('/api/test', async (req, res) => {
     try {
-        await sendTelegram('🧪 Test message from Reminder Bot dashboard!');
+        await sendWhatsApp('🔔 Test message from Reminder Bot! Bot is working correctly ✅');
         res.json({ success: true });
     } catch (err) {
         res.status(500).json({ error: 'Failed to send test message' });
@@ -164,4 +161,4 @@ app.listen(3000, () => {
 // ── STARTUP LOGS ─────────────────────────────────────────────────────────────
 
 console.log('🤖 Reminder bot started (IST)');
-console.log('📬 Sending to chat ID:', CHAT_ID);
+console.log('📬 Sending WhatsApp to:', process.env.SIR_WHATSAPP);
