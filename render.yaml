@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: mehulsir-taskbot
+    env: node
+    startCommand: node index.js
+    envVars:
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: SIR_CHAT_ID
+        sync: false
+      - key: DASHBOARD_PASSWORD
+        sync: false
