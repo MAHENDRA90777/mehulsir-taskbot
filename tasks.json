@@ -1,0 +1,41 @@
+[
+    {
+        "id": 1,
+        "name": "Morning medicine",
+        "type": "daily",
+        "time": "08:00"
+    },
+    {
+        "id": 2,
+        "name": "Team standup review",
+        "type": "daily",
+        "time": "09:30"
+    },
+    {
+        "id": 3,
+        "name": "HDFC credit card bill",
+        "type": "monthly",
+        "time": "09:00",
+        "dueDate": "25",
+        "note": "Pay before due date"
+    },
+    {
+        "id": 99,
+        "name": "Your credit card payment is due",
+        "type": "daily",
+        "time": "14:06"
+    },
+    {
+        "id": 4,
+        "name": "Weekly report review",
+        "type": "weekly",
+        "time": "10:00",
+        "dueDay": "Friday"
+    },
+    {
+        "id": 1773565018242,
+        "name": "Rent",
+        "type": "daily",
+        "time": "14:27"
+    }
+]
