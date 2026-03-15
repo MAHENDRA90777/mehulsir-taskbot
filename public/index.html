@@ -635,11 +635,8 @@
   }
 
   // ── INIT ──────────────────────────────────────────────────────
-  if (localStorage.getItem('bot_auth') === '1') {
-    showApp();
-  } else {
-    document.getElementById('loginPassword').focus();
-  }
+  document.getElementById('loginScreen').classList.remove('hidden');
+  document.getElementById('loginPassword').focus();
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 </script>
 </body>
